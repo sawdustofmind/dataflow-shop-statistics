@@ -1,0 +1,63 @@
+linters-settings:
+  gocritic:
+    disabled-checks:
+      - ifElseChain
+linters:
+  enable-all: true
+  disable:
+    - gomoddirectives
+    - revive
+    - varnamelen
+    - ireturn
+    - cyclop
+    - tagliatelle
+    - gochecknoglobals
+    - gochecknoinits
+    - ineffassign
+    - funlen
+    - gci
+    - err113
+    - gofumpt
+    - gomodguard
+    - testpackage
+    - nakedret
+    - wsl
+    - nlreturn
+    - lll
+    - stylecheck
+    - golint
+    - nolintlint
+    - godot
+    - gomnd
+    - godox
+    - gocognit
+    - whitespace
+    - interfacer
+    - goimports
+    - exhaustivestruct
+    - ifshort
+    - nestif
+    - wrapcheck
+    - maligned
+    - depguard
+    - forbidigo
+    - tagalign
+    - exhaustruct
+    - execinquery
+run:
+  deadline: 5m
+issues:
+  exclude-files:
+    - _gen.go
+    - _test.go
+  exclude-dirs:
+    - test
+  exclude-rules:
+    - path: _map\.go
+      linters:
+        - gofmt
+    - linters:
+        - gosec
+        - staticcheck
+        - gocritic
+      text: "G108:|G404:|SA1029:|commentFormatting:"

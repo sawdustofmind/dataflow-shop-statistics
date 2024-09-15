@@ -1,0 +1,160 @@
+openapi: 3.0.3
+info:
+  title: "Dataflow shops API"
+  description: "This is Dataflow shops API"
+  version: "1.0.0"
+servers:
+  - url: 'http://localhost:8080/'
+    description: User API server
+
+paths:
+  /v1/data:
+    post:
+      tags:
+        - "data"
+      summary: "Insert data about sales"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Data'
+      responses:
+        "200":
+          description: "Data about sales has been successfully inserted"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  status:
+                    type: "string"
+                    example: "success"
+
+    get:
+      tags:
+        - "data"
+      summary: "Get flat data list"
+      responses:
+        "200":
+          description: "Flat data entries list"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Data"
+
+  /v1/calculate:
+    post:
+      tags:
+        - "data"
+      summary: "Calculates statistics over raw data"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StatisticsRequest'
+      responses:
+        "200":
+          description: "Statistics"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatisticsResponse'
+
+components:
+  schemas:
+    Data:
+      type: object
+      required:
+        - product_id
+        - store_id
+        - quantity_sold
+        - sale_price
+        - sale_date
+      properties:
+        product_id:
+          type: string
+          example: "12345"
+          description: "product id"
+        store_id:
+          type: string
+          example: "6789"
+          description: "store id"
+        quantity_sold:
+          type: "integer"
+          example: 10
+          format: "uint64"
+          x-go-type: "uint64"
+          description: "quantity of items sold"
+        sale_price:
+          type: "string"
+          format: "float"
+          x-go-type: json.Number
+          example: "80.00"
+          description: "price of sale"
+        sale_date:
+          type: "string"
+          format: "date-time"
+          example: "2020-03-20T09:12:28Z"
+          description: "date and time of sale"
+
+    StatisticsRequest:
+      type: object
+      required:
+        - operation
+        - store_id
+        - start_date
+        - end_date
+      properties:
+        operation:
+          type: string
+          example: "total_sales"
+          description: "operation name. possible values: `total_sales`"
+        store_id:
+          type: string
+          example: "6789"
+          description: "store id"
+        start_date:
+          type: "string"
+          format: "date-time"
+          example: "2020-03-20T09:12:28Z"
+          description: "starting date for statistics calculation"
+        end_date:
+          type: "string"
+          format: "date-time"
+          example: "2020-03-20T10:12:28Z"
+          description: "starting date for statistics calculation"
+
+    StatisticsResponse:
+      type: object
+      required:
+        - store_id
+        - total_sales
+        - start_date
+        - end_date
+      properties:
+        store_id:
+          type: string
+          example: "6789"
+          description: "store id"
+        total_sales:
+          type: "string"
+          format: "float"
+          x-go-type: json.Number
+          example: "1200.23"
+          description: "total of all the sales for the period"
+        start_date:
+          type: "string"
+          format: "date-time"
+          example: "2020-03-20T09:12:28Z"
+          description: "date of the first sale in period"
+        end_date:
+          type: "string"
+          format: "date-time"
+          example: "2020-03-20T10:12:28Z"
+          description: "date of the last sale in period"
+
+tags:
+  - name: data
+    description: controllers to manage raw data
+  - name: statistics
+    description: controllers that calculates statistics over raw data

@@ -1,0 +1,13 @@
+package: userhttp
+output: internal/http/user/server.oapi_gen.go
+output-options:
+  include-tags:
+    - data
+    - statistics
+generate:
+  gin-server: true
+
+# TODO: uncomment once there will be at least one a request with GET params
+#additional-imports:
+#  - alias: .
+#    package: github.com/sawdustofmind/dataflow-shop-statistics/internal/openapi

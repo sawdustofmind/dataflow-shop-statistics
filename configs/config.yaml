@@ -1,0 +1,12 @@
+user_server:
+  address: ":8080"
+  read_timeout: "30s"
+  write_timeout: "30s"
+  max_header_bytes: 2048
+
+logger:
+  mode: prod
+
+storage:
+  type: "in_memory"
+  initial_capacity: 100

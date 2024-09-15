@@ -1,0 +1,6 @@
+package: api_types
+generate:
+  models: true
+output: internal/openapi/types.oapi_gen.go
+output-options:
+  skip-prune: true
