@@ -16,5 +16,5 @@ func NewStatisticsService(storage storage.Storage) *StatisticsService {
 }
 
 func (ds *StatisticsService) Calculate(sr entity.StatisticsRequest) (entity.StatisticsResult, error) {
-	return ds.storage.SalesSum(sr.StoreId, sr.StartDate.UnixNano(), sr.EndDate.UnixNano())
+	return ds.storage.SalesSum(sr.StoreId, sr.StartDate, sr.EndDate)
 }

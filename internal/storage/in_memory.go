@@ -1,28 +1,25 @@
 package storage
 
 import (
-	"math"
 	"sync"
+	"time"
 
 	"github.com/shopspring/decimal"
-	"go.uber.org/zap"
 
 	"github.com/sawdustofmind/dataflow-shop-statistics/internal/entity"
-	"github.com/sawdustofmind/dataflow-shop-statistics/internal/log"
 )
 
 type inMemoryStorage struct {
 	mu sync.RWMutex
 
-	Data []entity.SalesData
-
-	StoreIndex map[string][]entity.SalesData
+	data       []entity.SalesData
+	sumIndexes map[string]*sumIndex
 }
 
 func NewInMemoryStorage(capacity int) Storage {
 	return &inMemoryStorage{
-		Data:       make([]entity.SalesData, 0, capacity),
-		StoreIndex: make(map[string][]entity.SalesData),
+		data:       make([]entity.SalesData, 0, capacity),
+		sumIndexes: make(map[string]*sumIndex),
 	}
 }
 
@@ -30,8 +27,16 @@ func (s *inMemoryStorage) PutData(data entity.SalesData) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	s.Data = append(s.Data, data)
-	s.StoreIndex[data.StoreId] = append(s.StoreIndex[data.StoreId], data)
+	s.data = append(s.data, data)
+
+	// add to sum index
+	si, ok := s.sumIndexes[data.StoreId]
+	if !ok {
+		si = newSumIndex()
+		s.sumIndexes[data.StoreId] = si
+	}
+	total := data.SalePrice.Mul(decimal.NewFromUint64(data.QuantitySold))
+	si.AddSum(data.SaleDate.UnixNano(), total)
 
 	return nil
 }
@@ -40,45 +45,30 @@ func (s *inMemoryStorage) GetData() ([]entity.SalesData, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	cpy := make([]entity.SalesData, len(s.Data))
-	copy(cpy, s.Data)
+	cpy := make([]entity.SalesData, len(s.data))
+	copy(cpy, s.data)
 
 	return cpy, nil
 }
 
-func (s *inMemoryStorage) SalesSum(storeId string, since int64, to int64) (entity.StatisticsResult, error) {
+func (s *inMemoryStorage) SalesSum(storeId string, since time.Time, to time.Time) (entity.StatisticsResult, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	storeIndex := s.StoreIndex[storeId]
-
-	log.Info("ss", zap.Int64("since", since), zap.Int64("to", to), zap.Int64("cur", s.Data[0].SaleDate))
-
-	sum := decimal.New(0, 8) // TODO: come up with something better
-
-	minDate := int64(math.MaxInt64)
-	maxDate := int64(math.MinInt64)
-
-	for _, data := range storeIndex {
-		if data.SaleDate >= since && data.SaleDate <= to {
-			if data.SaleDate <= minDate {
-				minDate = data.SaleDate
-			}
-			if data.SaleDate >= maxDate {
-				maxDate = data.SaleDate
-			}
-
-			sum = sum.Add(data.SalePrice)
-		}
+	si, ok := s.sumIndexes[storeId]
+	if !ok {
+		return entity.StatisticsResult{}, nil
 	}
+
+	rangeFrom, rangeTo, sum := si.CalcSum(since.UnixNano(), to.UnixNano())
 
 	result := entity.StatisticsResult{
 		Sum: sum,
 	}
 
 	if !sum.IsZero() {
-		result.From = minDate
-		result.To = maxDate
+		result.From = rangeFrom
+		result.To = rangeTo
 	}
 
 	return result, nil

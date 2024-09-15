@@ -3,7 +3,6 @@ package userhttp
 import (
 	"encoding/json"
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/shopspring/decimal"
@@ -25,7 +24,7 @@ func (s ServerImpl) GetV1Data(c *gin.Context) {
 		response = append(response, api_types.Data{
 			ProductId:    d.ProductId,
 			QuantitySold: d.QuantitySold,
-			SaleDate:     time.Unix(0, d.SaleDate).In(time.UTC),
+			SaleDate:     d.SaleDate,
 			SalePrice:    json.Number(d.SalePrice.String()),
 			StoreId:      d.StoreId,
 		})
@@ -53,7 +52,7 @@ func (s ServerImpl) PostV1Data(c *gin.Context) {
 		ProductId:    req.ProductId,
 		QuantitySold: req.QuantitySold,
 		SalePrice:    price,
-		SaleDate:     req.SaleDate.UnixNano(),
+		SaleDate:     req.SaleDate,
 	}
 
 	err = s.dataService.PutData(sd)

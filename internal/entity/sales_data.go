@@ -1,6 +1,10 @@
 package entity
 
-import "github.com/shopspring/decimal"
+import (
+	"time"
+
+	"github.com/shopspring/decimal"
+)
 
 // Data defines model for Data.
 type SalesData struct {
@@ -8,5 +12,5 @@ type SalesData struct {
 	ProductId    string          `json:"product_id"`
 	QuantitySold uint64          `json:"quantity_sold"`
 	SalePrice    decimal.Decimal `json:"sale_price"`
-	SaleDate     int64           `json:"sale_date"` //nanos
+	SaleDate     time.Time       `json:"sale_date"`
 }
